@@ -1,0 +1,18 @@
+package com.myteam.loanproduct;
+
+import com.myteam.loanproduct.Employment;
+import com.myteam.loanproduct.Identity;
+import com.myteam.loanproduct.LoanApplication;
+import com.myteam.loanproduct.Product;
+import com.myteam.loanproduct.Repayment;
+
+rule "大地时贷-薪金贷"
+    when
+        $application: LoanApplication($repayment: repayment, $applicant: applicant)
+        Repayment(interestRate == null || (>= 0.9 && <= 1.9)) from $repayment
+        Identity(age == null || (>= 22 && <= 55)) from $applicant.identity
+        Employment(status == 'full-time', monthlySalary >= 3000, duration >= 6, $applicant.identity.isLocal || (paidMethod == 'bank' && socialInsurance!.base > 0)) from $applicant.employment
+    then
+        // 加入可选产品列表
+        $application.getAvailableProductIds().add(1);
+end
